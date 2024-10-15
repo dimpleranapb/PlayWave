@@ -60,7 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
     avatar: avatar.url,
     coverImage: coverImage?.url || "",
     email,
-    password: hashedPassword,
+    password,
     username: username.toLowerCase(),
   });
 
