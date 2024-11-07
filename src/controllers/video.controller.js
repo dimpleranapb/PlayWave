@@ -7,32 +7,32 @@ import asyncHandler from "../utils/asyncHandler.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.body;
+  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
   //Filtering
 
   let filters = {};
   if (userId) filters.userId = userId;
   if (query) filters.title = new RegExp(query, "i");
 
-
   //Sorting
   let sortOptions = {};
   sortOptions[sortBy] = sortType === "asc" ? 1 : -1;
 
-  const skip = (page -1 )*10
+  const skip = (page - 1) * 10;
 
   const videos = await Video.find(filters)
-  .sort(sortOptions)
-  .skip(skip)
-  .limit(Number(limit))
+    .sort(sortOptions)
+    .skip(skip)
+    .limit(Number(limit))
+    .populate("owner",  "username avatar");
 
   if (videos.length === 0) {
     throw new ApiError(404, "No videos found");
   }
 
-  res.status(200)
-  .json(new ApiResponse(200, videos, "Videos data fetched successfully"))
-  
+  res
+    .status(200)
+    .json(new ApiResponse(200, videos, "Videos data fetched successfully"));
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
@@ -79,4 +79,27 @@ const publishAVideo = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, video, "Video published successfully"));
 });
 
-export { publishAVideo, getAllVideos };
+const getVideoById = asyncHandler(async(req, res) => {
+  const { videoId } = req.params
+
+  const video = await Video.findById(videoId)
+  .populate("owner", "username")
+  if(!video) {
+    throw new ApiError(400, "No video found")
+  }
+
+
+
+})
+
+const deleteVideo = asyncHandler(async(req, res) => {
+
+})
+
+const updateVideo = asyncHandler(async (req, res) => {
+  const { videoId } = req.params
+  //TODO: update video details like title, description, thumbnail
+
+})
+
+export { publishAVideo, getAllVideos, getVideoById, deleteVideo, updateVideo };
