@@ -255,7 +255,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         avatar: avatar.url,
       },
     },
-    { new: true }
+    { new: true } //to return updated document instead of old one
   );
   return res
     .status(200)

@@ -81,25 +81,77 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async(req, res) => {
   const { videoId } = req.params
-
+  if(!videoId){
+    throw new ApiError(400, "Video ID is required");
+  }
   const video = await Video.findById(videoId)
   .populate("owner", "username")
   if(!video) {
     throw new ApiError(400, "No video found")
   }
-
+  res
+  .status(200)
+  .json(new ApiResponse(200, video, "Video fetched successfully"));
 
 
 })
 
 const deleteVideo = asyncHandler(async(req, res) => {
+  const { videoId } = req.params
+  if(!videoId){
+    throw new ApiError(400, "Video ID is required");
+  }
+
+  const video = await Video.findByIdAndDelete(videoId);
+  if(!video){
+    throw new ApiError(404, "Video not found");
+  }
+
+  res.status(200)
+  .json(new ApiResponse(200, video, "Video Deleted Successfully "))
 
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params
-  //TODO: update video details like title, description, thumbnail
+  if(!videoId){
+    throw new ApiError(400, "Video ID is required");
+  }
+  //Update video details like title, description, thumbnail
+  const{title, description} = req.body
+  const thumbnailLocalPath = req.file?.path
+  console.log(thumbnailLocalPath)
+  if (
+    [title, description, thumbnailLocalPath].some((field) => field?.trim() === "")
+  ) {
+    throw new ApiError(400, "All fields are required");
+  }
 
+  const thumbnail = await uploadOnCloudinary(thumbnailLocalPath)
+  console.log(thumbnail)
+  if(!thumbnail){
+    throw new ApiError(400, "Thumbnail Upload Failed");
+  }
+ const video  = await Video.findByIdAndUpdate(videoId,
+  {
+    $set: {
+      title,
+      description,
+      thumbnail: thumbnail.url
+    }
+  },{new:true}
+ )
+ if (!video) {
+  throw new ApiError(404, "Video not found");
+}
+
+ res.status(200)
+ .json( new ApiResponse(200, video, "Video updated successfully"))
+
+})
+
+const togglePublishStatus = asyncHandler(async (req, res) => {
+  const { videoId } = req.params
 })
 
 export { publishAVideo, getAllVideos, getVideoById, deleteVideo, updateVideo };
