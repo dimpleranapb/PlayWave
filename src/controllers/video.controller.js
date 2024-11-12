@@ -12,15 +12,13 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
   let filters = {};
   if (userId) {
-    
     filters.owner = userId;
     if (userId != req.user._id) {
-      filters.isPublished = true; 
+      filters.isPublished = true;
     }
-  
-  }else{
-    filters.isPublished
-  };
+  } else {
+    filters.isPublished;
+  }
   if (query) filters.title = new RegExp(query, "i");
 
   //Sorting
