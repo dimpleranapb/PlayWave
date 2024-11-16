@@ -12,4 +12,4 @@ router.route(/c/channelId)
 
 router.route("/u/:subscriberId").get(getUserChannelSubscribers);
 
-export default router;
+export default router; 
