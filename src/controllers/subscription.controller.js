@@ -1,8 +1,8 @@
 import mongoose, { isValidObjectId } from "mongoose";
-import Subscription from "../models/subscription.model";
-import ApiError from "../utils/ApiError";
-import ApiResponse from "../utils/ApiResponse";
-import asyncHandler from "../utils/asyncHandler";
+import Subscription from "../models/subscription.model.js";
+import ApiError from "../utils/ApiError.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import asyncHandler from "../utils/asyncHandler.js";
 
 const toggleSubscription = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
@@ -41,16 +41,15 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
 // controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
-  const { channelId } = req.params;
-  if (!channelId) {
-    throw new ApiError(400, "channelId is required");
+  const { subscriberId } = req.params;
+
+  if (!subscriberId || !mongoose.isValidObjectId(subscriberId)) {
+    throw new ApiError(400, "Valid subscriberId is required");
   }
 
   const subscribers = await Subscription.aggregate([
     {
-      $match: {
-        channel: mongoose.Types.ObjectId(channelId),
-      },
+      $match: { channel: new mongoose.Types.ObjectId(subscriberId) },
     },
     {
       $lookup: {
@@ -60,45 +59,42 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         as: "subscriberDetails",
       },
     },
-    {
-      $unwind: "$subscriberDetails", // Flatten the array of subscriber details
-    },
+    { $unwind: "$subscriberDetails" },
     {
       $project: {
-        _id: 0, // Exclude the subscription document ID
+        _id: 0,
         subscriberId: "$subscriberDetails._id",
         name: "$subscriberDetails.name",
         username: "$subscriberDetails.username",
         avatar: "$subscriberDetails.avatar",
-        email: 0,
       },
     },
   ]);
-  if (subscribers.length === 0) {
-    return res
-      .status(404)
-      .json({ message: "No subscribers found for this channel" });
-  }
 
-  // Respond with the list of subscribers
   return res
     .status(200)
-    .json(new ApiResponse(200, subscribers, "Subscribers fetch Successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        subscribers,
+        subscribers.length
+          ? "Subscribers fetched successfully"
+          : "No subscribers found for this channel"
+      )
+    );
 });
 
-// controller to return channel list to which user has subscribed
+// Controller: Get Channels Subscribed By User
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-  const { subscriberId } = req.params;
+  const subscriber = req.user?._id;
 
-  if (!subscriberId) {
-    throw new ApiError(400, "subscriberId is not required");
+  if (!subscriber) {
+    throw new ApiError(401, "Unauthorized access");
   }
 
   const channels = await Subscription.aggregate([
     {
-      $match: {
-        subscriber: subscriberId,
-      },
+      $match: { subscriber: new mongoose.Types.ObjectId(subscriber) }, // FIXED
     },
     {
       $lookup: {
@@ -108,9 +104,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         as: "channelDetails",
       },
     },
-    {
-      $unwind: "$channelDetails",
-    },
+    { $unwind: "$channelDetails" },
     {
       $project: {
         _id: 0,
@@ -118,17 +112,20 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         name: "$channelDetails.name",
         username: "$channelDetails.username",
         avatar: "$channelDetails.avatar",
-        email: 0,
       },
     },
   ]);
-  if (channels.length === 0) {
-    throw new ApiError(400, "No channels found");
-  }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, channels, "Channel details fetch successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        channels,
+        channels.length
+          ? "Subscribed channels fetched successfully"
+          : "No subscribed channels found"
+      )
+    );
 });
-
 export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };
