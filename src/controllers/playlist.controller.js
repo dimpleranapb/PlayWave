@@ -19,19 +19,43 @@ const createPlaylist = asyncHandler(async (req, res) => {
   });
   if (!playlist) throw new ApiError(400, "Something went wrong");
 
-  return res.status(200)
-  .json(new ApiResponse(200, "Playlist created successfully"))
-
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Playlist created successfully"));
 });
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   //TODO: get user playlists
+  if (!userId) throw new ApiError(400, "userId is required");
+  const playlists = await Playlist.aggregate([
+    {
+      $match: {
+        owner:  new mongoose.Types.ObjectId(userId),
+      },
+    },
+  ]);
+
+  if (!playlists || playlists.length === 0) {
+    throw new ApiError(404, "No playlists found for the user");
+  }
+
+  return res.status(200)
+  .json(new ApiResponse(200, playlists, "User playlists fetch successfully"));
 });
 
 const getPlaylistById = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
   //TODO: get playlist by id
+  if (!playlistId) throw new ApiError(400, "playlistId is required");
+
+  const playlist = await Playlist.findById(playlistId);
+  if (!playlist) {
+    throw new ApiError(404, "Playlist not found");
+  }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, playlist, "Playlist fetch successfully"));
 });
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
