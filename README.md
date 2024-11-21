@@ -37,21 +37,32 @@ PlayWave is a backend-focused video hosting platform built with **Node.js**, **E
    Clone the repository to your local machine using the following command:  
    ```bash
    git clone https://github.com/dimpleranapb/playwave-backend.git
-   cd playwave-backend
+   cd backend
 2. **Install Dependencies**
 Navigate to the project directory and install the required Node.js packages:
    ```bash
    npm install
 
 3. **Set Up Environment Variables**
-4. Create a .env file in the root directory of the project and configure the following variables:
-
-env
-Copy code
-
+Create a .env file in the root directory of the project and configure the following variables:
    ```bash
-   git clone https://github.com/dimpleranapb/playwave-backend.git
-   cd playwave-backend
-5. **Install Dependencies**
+   PORT=8000
+   MONGODB_URL=mongodb+srv://your_username:your_password@cluster0.mongodb.net
+   CORS_ORIGIN=*
+   ACCESS_TOKEN_SECRET=your_access_token_secret
+   ACCESS_TOKEN_EXPIRY=1d
+   REFRESH_TOKEN_SECRET=your_refresh_token_secret
+   REFRESH_TOKEN_EXPIRY=10d
+   CLOUDINARY_NAME=your_cloudinary_name
+   CLOUDINARY_API_KEY=your_cloudinary_api_key
+   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
+4. **Start the Development Server**
+Launch the server in development mode using:
+   ```bash
+   npm run dev
+   
+5. **Test the APIs**
+Use a tool like Postman or cURL to test the available API endpoints.
 
+Your backend server should now be running at http://localhost:8000 (or the port specified in your .env file).
