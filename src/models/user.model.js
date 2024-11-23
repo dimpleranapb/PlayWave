@@ -31,10 +31,12 @@ const userSchema = new Schema(
     coverImages: {
       type: String, //Cloudinary URL
     },
-    watchHistory: {
-      type: Schema.Types.ObjectId,
-      ref: "Video",
-    },
+    watchHistory: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Video",
+      },
+    ],
     password: {
       type: String,
       required: [true, "password is required"],
