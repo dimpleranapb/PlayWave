@@ -128,17 +128,30 @@ const getLikedVideos = asyncHandler(async (req, res) => {
               },
             },
           },
+          {
+            $project: {
+              title: 1,
+              description: 1,
+              thumbnail: 1,
+              owner: 1,
+            },
+          },
         ],
       },
     },
     {
       $unwind: "$likedVideos",
     },
+    {
+      $replaceRoot: { newRoot: "$likedVideos" },
+    },
   ]);
+
   if (!videos.length) throw new ApiError(404, "Videos not found");
+
   return res
     .status(200)
-    .json(new ApiResponse(200, videos, "Liked videos data fetch successfully"));
+    .json(new ApiResponse(200, videos, "Liked videos data fetched successfully"));
 });
 
 export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos };
