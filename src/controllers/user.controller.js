@@ -227,7 +227,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         email,
       },
     },
-    { new: true } //To get updated Information back
+    { new: true } 
   ).select("-password");
 
   return res
