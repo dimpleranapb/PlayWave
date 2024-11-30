@@ -7,33 +7,34 @@ import asyncHandler from "../utils/asyncHandler.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-  //Filtering
+  const {
+    page = 1,
+    limit = 10,
+    query,
+    sortBy = "createdAt",
+    sortType = "desc",
+  } = req.query;
 
-  let filters = {};
-  if (userId) {
-    filters.owner = userId;
-    if (userId != req.user._id) {
-      filters.isPublished = true;
-    }
-  } else {
-    filters.isPublished;
+  // Filtering
+  let filters = { isPublished: true }; // Only show published videos
+  if (query) {
+    filters.title = new RegExp(query, "i"); // Search for query in the title
   }
-  if (query) filters.title = new RegExp(query, "i");
 
-  //Sorting
+  // Sorting
   let sortOptions = {};
   sortOptions[sortBy] = sortType === "asc" ? 1 : -1;
 
-  const skip = (page - 1) * 10;
+  const skip = (page - 1) * Number(limit);
 
+  // Fetching videos with filters, sorting, pagination, and populating the owner field
   const videos = await Video.find(filters)
     .sort(sortOptions)
     .skip(skip)
     .limit(Number(limit))
     .populate("owner", "username avatar");
 
-  if (videos.length === 0) {
+  if (!videos.length) {
     throw new ApiError(404, "No videos found");
   }
 
